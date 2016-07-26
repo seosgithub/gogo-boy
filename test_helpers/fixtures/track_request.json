@@ -1,0 +1,28 @@
+{
+  "app_group_id": "foo",
+  "attributes": [
+    {
+      "external_id": "foo",
+      "first_name": "bar",
+      "email": "test@test.com",
+      "custom_value_attribute": "custom_value_attribute_value"
+    }
+  ],
+  "purchases": [
+    {
+      "external_id": "foo",
+      "product_id": "baz",
+      "currency": "USD",
+      "price": 4.92,
+      "quantity": 1,
+      "time": "Z070000"
+    }
+  ],
+  "events": [
+    {
+      "external_id": "foo",
+      "name": "bak",
+      "time": "Z070000"
+    }
+  ]
+}

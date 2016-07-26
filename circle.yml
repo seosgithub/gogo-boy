@@ -1,0 +1,17 @@
+machine:
+  environment:
+    IMPORT_PATH: "github.com/sotownsend/gogo-boy"
+    GOPATH: "/home/ubuntu/.go_workspace/"
+    GO15VENDOREXPERIMENT: 1
+
+dependencies:
+  pre:
+    - curl https://glide.sh/get | sh
+
+  override:
+    - mkdir -p "$GOPATH/src/$IMPORT_PATH"
+    - rsync -azC --delete ./ "$GOPATH/src/$IMPORT_PATH/"
+
+test:
+  override:
+    - cd $GOPATH/src/$IMPORT_PATH; glide install; make test

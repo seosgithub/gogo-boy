@@ -1,0 +1,3 @@
+package: github.com/sotownsend/gogo-boy
+import:
+- package: github.com/jarcoal/httpmock
