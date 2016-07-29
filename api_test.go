@@ -1,6 +1,8 @@
 package gogo_boy
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 
@@ -138,5 +140,61 @@ func TestAPI(t *testing.T) {
 		_event := events[0].(map[string]interface{})
 		So(_event["name"], ShouldEqual, "blah")
 		So(_event["time"], ShouldEqual, "1969-31-12") // Epoch 0
+	})
+
+	Convey("Can marshal a track request", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		mockTrackSuccess(func(_request map[string]interface{}) { request = _request })
+
+		a := NewTrackRequest("holah")
+		a.SetEmail("test@test.com")
+		a.SetFirstName("foo")
+		a.SetCustomValueAttribute("foo", "bar")
+		event := NewEvent()
+		event.SetName("blah")
+		event.SetTime(time.Unix(86399, 0))
+		a.AddEvent(event)
+
+		eventB := NewEvent()
+		eventB.SetName("foo")
+		eventB.SetTime(time.Unix(0, 0))
+		a.AddEvent(eventB)
+
+		eventC := NewPurchaseEvent()
+		eventC.SetTime(time.Unix(86400, 0))
+		eventC.SetQuantity(1)
+		eventC.SetProductId("foo")
+		eventC.SetPrice(1)
+		eventC.SetCurrencyUSD()
+		a.AddEvent(eventC)
+
+		checkErr(a.Post())
+		requestA := request
+		request = nil
+
+		res, err := json.Marshal(a)
+		checkErr(err)
+
+		var req TrackRequest
+		err = json.Unmarshal(res, &req)
+		checkErr(err)
+
+		checkErr(req.Post())
+		requestB := request
+
+		So(requestA, ShouldNotEqual, nil)
+		So(reflect.DeepEqual(requestA, requestB), ShouldEqual, true)
+
+		So(len(req.Attributes), ShouldEqual, 3)
+		So(len(req.Events), ShouldEqual, 2)
+		So(len(req.PurchaseEvents), ShouldEqual, 1)
+		So(req.PurchaseEvents[0].Price, ShouldEqual, 1)
+		So(req.PurchaseEvents[0].Time, ShouldEqual, "1970-01-01")
+		So(req.Events[0].Name, ShouldEqual, "blah")
+		So(req.Events[1].Time, ShouldEqual, "1969-31-12")
 	})
 }
