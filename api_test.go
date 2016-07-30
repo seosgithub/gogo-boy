@@ -214,4 +214,25 @@ func TestAPI(t *testing.T) {
 		err := a.Post()
 		So(err, ShouldNotEqual, nil)
 	})
+
+	Convey("Using the failure mock will result in an error", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockTrackFailure(func(_request map[string]interface{}) { request = _request })
+
+		StopMocks()
+
+		a := NewTrackRequest("holah")
+		a.SetEmail("test@test.com")
+		a.SetFirstName("foo")
+		a.SetCustomValueAttribute("foo", "bar")
+
+		// This will fail because it hits app boys servers
+		err := a.Post()
+		So(err, ShouldNotEqual, nil)
+	})
+
 }

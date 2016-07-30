@@ -28,6 +28,25 @@ func MockTrackSuccess(requestChecker func(map[string]interface{})) {
 	)
 }
 
+func MockTrackFailure(requestChecker func(map[string]interface{})) {
+	httpmock.Activate()
+	httpmock.RegisterResponder("POST", TrackEndpoint,
+		func(req *http.Request) (*http.Response, error) {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(req.Body)
+			_request := buf.String()
+
+			var request map[string]interface{}
+			err := json.Unmarshal([]byte(_request), &request)
+			checkErr(err)
+			requestChecker(request)
+
+			resp := httpmock.NewStringResponse(500, "error")
+			return resp, nil
+		},
+	)
+}
+
 func StopMocks() {
 	httpmock.DeactivateAndReset()
 }
