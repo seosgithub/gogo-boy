@@ -6,19 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestAPI(t *testing.T) {
 	before := func() {
-		httpmock.Activate()
-
 		Configure("foo", "blah")
 	}
 
 	after := func() {
-		httpmock.DeactivateAndReset()
+		StopMocks()
 	}
 
 	Convey("Can execute a track request to app-boy", t, func() {
@@ -27,7 +24,7 @@ func TestAPI(t *testing.T) {
 
 		// Mock request to app-boy
 		var request map[string]interface{}
-		mockTrackSuccess(func(_request map[string]interface{}) { request = _request })
+		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
 		externalId := "holah"
 		a := NewTrackRequest(externalId)
@@ -52,7 +49,7 @@ func TestAPI(t *testing.T) {
 
 		// Mock request to app-boy
 		var request map[string]interface{}
-		mockTrackSuccess(func(_request map[string]interface{}) { request = _request })
+		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
 		a := NewTrackRequest("holah")
 		a.SetFirstName("foo")
@@ -85,7 +82,7 @@ func TestAPI(t *testing.T) {
 
 		// Mock request to app-boy
 		var request map[string]interface{}
-		mockTrackSuccess(func(_request map[string]interface{}) { request = _request })
+		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
 		a := NewTrackRequest("holah")
 		pEvent := NewPurchaseEvent()
@@ -117,7 +114,7 @@ func TestAPI(t *testing.T) {
 
 		// Mock request to app-boy
 		var request map[string]interface{}
-		mockTrackSuccess(func(_request map[string]interface{}) { request = _request })
+		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
 		a := NewTrackRequest("holah")
 		event := NewEvent()
@@ -148,7 +145,7 @@ func TestAPI(t *testing.T) {
 
 		// Mock request to app-boy
 		var request map[string]interface{}
-		mockTrackSuccess(func(_request map[string]interface{}) { request = _request })
+		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
 		a := NewTrackRequest("holah")
 		a.SetEmail("test@test.com")
@@ -196,5 +193,25 @@ func TestAPI(t *testing.T) {
 		So(req.PurchaseEvents[0].Time, ShouldEqual, "1970-01-01")
 		So(req.Events[0].Name, ShouldEqual, "blah")
 		So(req.Events[1].Time, ShouldEqual, "1969-31-12")
+	})
+
+	Convey("Disabling mocks won't work", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
+
+		StopMocks()
+
+		a := NewTrackRequest("holah")
+		a.SetEmail("test@test.com")
+		a.SetFirstName("foo")
+		a.SetCustomValueAttribute("foo", "bar")
+
+		// This will fail because it hits app boys servers
+		err := a.Post()
+		So(err, ShouldNotEqual, nil)
 	})
 }

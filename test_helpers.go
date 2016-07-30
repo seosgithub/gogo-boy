@@ -8,7 +8,8 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func mockTrackSuccess(requestChecker func(map[string]interface{})) {
+func MockTrackSuccess(requestChecker func(map[string]interface{})) {
+	httpmock.Activate()
 	httpmock.RegisterResponder("POST", TrackEndpoint,
 		func(req *http.Request) (*http.Response, error) {
 			buf := new(bytes.Buffer)
@@ -25,4 +26,8 @@ func mockTrackSuccess(requestChecker func(map[string]interface{})) {
 			return resp, nil
 		},
 	)
+}
+
+func StopMocks() {
+	httpmock.DeactivateAndReset()
 }

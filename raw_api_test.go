@@ -22,7 +22,7 @@ func TestRawAPI(t *testing.T) {
 
 		// Mock request to app-boy
 		var request map[string]interface{}
-		mockTrackSuccess(func(_request map[string]interface{}) {
+		MockTrackSuccess(func(_request map[string]interface{}) {
 			request = _request
 		})
 
@@ -103,4 +103,20 @@ func TestRawAPI(t *testing.T) {
 		So(event["name"], ShouldEqual, "bak")
 		So(event["time"], ShouldEqual, "Z070000")
 	})
+
+	//Convey("Can mock the request to AppBoy externally", t, func() {
+	//before()
+	//defer after()
+
+	//var request map[string]interface{}
+	//EnableMockRequest(func(_request map[string]interface{}) {
+	//request = _request
+	//})
+
+	//tr := NewTrackRequest("foo")
+	//err := tr.Post()
+	//checkErr(err)
+
+	//So(request, ShouldEqual, nil)
+	//})
 }
