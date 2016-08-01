@@ -137,6 +137,7 @@ func TestAPI(t *testing.T) {
 		_event := events[0].(map[string]interface{})
 		So(_event["name"], ShouldEqual, "blah")
 		So(_event["time"], ShouldEqual, "1969-31-12") // Epoch 0
+		So(_event["external_id"], ShouldEqual, "holah")
 	})
 
 	Convey("Can marshal a track request", t, func() {

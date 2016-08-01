@@ -28,6 +28,9 @@ track.SetFirstName("foo")
 track.SetEmail("test@test.com")
 track.SetCustomValueAttribute("baz", "bar")
 
+// Add push token
+track.AddPushToken("foo")
+
 // Post events
 e := gogo_boy.NewEvent()
 e.SetName("foo")

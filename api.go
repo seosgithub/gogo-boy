@@ -125,6 +125,7 @@ func (tr *TrackRequest) Post() error {
 
 	for _, pt := range tr.Events {
 		rpi := pt.RawEventInfo
+		rpi.ExternalId = tr.ExternalId
 		rt.Events = append(rt.Events, rpi)
 	}
 
