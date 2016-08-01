@@ -80,7 +80,7 @@ func (tr *TrackRequest) AddPushToken(token string) {
 	tr.PushTokenAttributes = append(tr.PushTokenAttributes, token)
 }
 
-func (tr *TrackRequest) SetCustomValueAttribute(name string, value string) {
+func (tr *TrackRequest) SetCustomValueAttribute(name string, value interface{}) {
 	tr.Attributes[name] = value
 }
 
