@@ -105,7 +105,7 @@ func TestAPI(t *testing.T) {
 		So(purchase["currency"], ShouldEqual, "USD")
 		So(purchase["price"], ShouldEqual, 4.29)
 		So(purchase["quantity"], ShouldEqual, 1)
-		So(purchase["time"], ShouldEqual, "1969-31-12") // Epoch 0
+		So(purchase["time"], ShouldEqual, "1970-01-01T00:00:00") // Epoch 0
 	})
 
 	Convey("Can execute a track request for a event", t, func() {
@@ -136,7 +136,7 @@ func TestAPI(t *testing.T) {
 		So(len(events), ShouldEqual, 2)
 		_event := events[0].(map[string]interface{})
 		So(_event["name"], ShouldEqual, "blah")
-		So(_event["time"], ShouldEqual, "1969-31-12") // Epoch 0
+		So(_event["time"], ShouldEqual, "1970-01-01T00:00:00") // Epoch 0
 		So(_event["external_id"], ShouldEqual, "holah")
 	})
 
@@ -191,9 +191,9 @@ func TestAPI(t *testing.T) {
 		So(len(req.Events), ShouldEqual, 2)
 		So(len(req.PurchaseEvents), ShouldEqual, 1)
 		So(req.PurchaseEvents[0].Price, ShouldEqual, 1)
-		So(req.PurchaseEvents[0].Time, ShouldEqual, "1970-01-01")
+		So(req.PurchaseEvents[0].Time, ShouldEqual, "1970-01-02T00:00:00")
 		So(req.Events[0].Name, ShouldEqual, "blah")
-		So(req.Events[1].Time, ShouldEqual, "1969-31-12")
+		So(req.Events[0].Time, ShouldEqual, "1970-01-01T23:59:59")
 	})
 
 	Convey("Disabling mocks won't work", t, func() {

@@ -157,7 +157,7 @@ func (e *PurchaseEvent) SetQuantity(val int) {
 }
 
 func (e *PurchaseEvent) SetTime(time time.Time) {
-	e.Time = time.Format("2006-02-01")
+	e.Time = time.UTC().Format("2006-01-02T15:04:05")
 }
 
 type Event struct {
@@ -173,5 +173,5 @@ func (e *Event) SetName(val string) {
 }
 
 func (e *Event) SetTime(time time.Time) {
-	e.Time = time.Format("2006-02-01")
+	e.Time = time.UTC().Format("2006-01-02T15:04:05")
 }
