@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 /*
@@ -15,7 +16,8 @@ import (
 */
 
 const (
-	TrackEndpoint = "https://api.appboy.com/users/track"
+	TrackEndpoint   = "https://api.appboy.com/users/track"
+	timeoutDuration = time.Second * time.Duration(5)
 )
 
 // A track request is used to track purchases, user events, etc. It's configured
@@ -110,7 +112,9 @@ func RawPostTrackRequest(trackRequest *RawTrackRequest) error {
 	req.Header.Add("Content-Type", "application/json")
 
 	// Our HTTP client
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: timeoutDuration,
+	}
 
 	// Execute request
 	var resp *http.Response
@@ -126,8 +130,6 @@ func RawPostTrackRequest(trackRequest *RawTrackRequest) error {
 	if err != nil {
 		return fmt.Errorf("PostTrackRequest failed: %s", err)
 	}
-
-	fmt.Printf("body: %s\n", body)
 
 	// App-Boy returns a 201 if this is successful
 	if resp.StatusCode != 201 {
