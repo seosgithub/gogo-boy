@@ -24,16 +24,16 @@ const (
 // so you can batch requests which won't count against your API limit.
 type RawTrackRequest struct {
 	AppGroupId string              `json:"app_group_id"`
-	Attributes []RawAttributesInfo `json:"attributes"` // Attributes are per-user information
-	Purchases  []RawPurchaseInfo   `json:"purchases"`  // Purchases are special events, each bound to a user
-	Events     []RawEventInfo      `json:"events"`     // Events
+	Attributes []RawAttributesInfo `json:"attributes,omitempty"` // Attributes are per-user information
+	Purchases  []RawPurchaseInfo   `json:"purchases,omitempty"`  // Purchases are special events, each bound to a user
+	Events     []RawEventInfo      `json:"events,omitempty"`     // Events
 }
 
 type RawAttributesInfo struct {
 	ExternalId string `json:"external_id"` // The id of your user in your database
 
-	PushTokenImport bool               `json:"push_token_import,omitempty"` // Are you importing a push token?
-	PushTokens      []RawPushTokenInfo `json:"push_tokens,omitempty"`       // A list of push tokens
+	//PushTokenImport bool               `json:"push_token_import,omitempty"` // Are you importing a push token?
+	PushTokens []RawPushTokenInfo `json:"push_tokens,omitempty"` // A list of push tokens
 
 	FirstName string `json:"first_name,omitempty"` // User's first name
 	LastName  string `json:"last_name,omitempty"`  // User's last name
@@ -130,6 +130,9 @@ func RawPostTrackRequest(trackRequest *RawTrackRequest) error {
 	if err != nil {
 		return fmt.Errorf("PostTrackRequest failed: %s", err)
 	}
+
+	//fmt.Printf("%v", string(json))
+	//fmt.Printf("%v", string(body))
 
 	// App-Boy returns a 201 if this is successful
 	if resp.StatusCode != 201 {

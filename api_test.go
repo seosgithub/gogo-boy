@@ -68,7 +68,7 @@ func TestAPI(t *testing.T) {
 		So(attribute["first_name"], ShouldEqual, "foo")
 		So(attribute["email"], ShouldEqual, "test@test.com")
 		So(attribute["baz"], ShouldEqual, "bar")
-		So(attribute["push_token_import"], ShouldEqual, true)
+		//So(attribute["push_token_import"], ShouldEqual, true)
 
 		pushTokenAttributes := attribute["push_tokens"].([]interface{})
 		pushTokenAttribute := pushTokenAttributes[0].(map[string]interface{})

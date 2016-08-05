@@ -110,7 +110,7 @@ func (tr *TrackRequest) Post() error {
 	}
 
 	for _, pt := range tr.PushTokenAttributes {
-		rt.Attributes[0].PushTokenImport = true
+		//rt.Attributes[0].PushTokenImport = true
 		rt.Attributes[0].PushTokens = append(rt.Attributes[0].PushTokens, RawPushTokenInfo{
 			Token: pt,
 			AppId: tr.AppId,
