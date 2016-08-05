@@ -131,8 +131,8 @@ func RawPostTrackRequest(trackRequest *RawTrackRequest) error {
 		return fmt.Errorf("PostTrackRequest failed: %s", err)
 	}
 
-	//fmt.Printf("%v", string(json))
-	//fmt.Printf("%v", string(body))
+	fmt.Printf("%v", string(json))
+	fmt.Printf("%v", string(body))
 
 	// App-Boy returns a 201 if this is successful
 	if resp.StatusCode != 201 {
