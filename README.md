@@ -81,7 +81,7 @@ checkErr(err)
 ```
 
 # Serialization
-The track request is marshable and unmarshable into json via `json.Marshal()`. This allows you to save the request and post it at a later time.
+The track request and campaign triggers ars marshable and unmarshable into json via `json.Marshal()`. This allows you to save the request(s) and post it at a later time.
 
 ## Communication
 > ♥ This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
