@@ -10,8 +10,9 @@ import (
 )
 
 func TestAPI(t *testing.T) {
+	var client *Client
 	before := func() {
-		Configure("foo", "blah")
+		client = NewClient("foo", "blah")
 	}
 
 	after := func() {
@@ -27,7 +28,7 @@ func TestAPI(t *testing.T) {
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
 		externalId := "holah"
-		a := NewTrackRequest(externalId)
+		a := client.NewTrackRequest(externalId)
 		err := a.Post()
 
 		err = a.Post()
@@ -51,7 +52,7 @@ func TestAPI(t *testing.T) {
 		var request map[string]interface{}
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
-		a := NewTrackRequest("holah")
+		a := client.NewTrackRequest("holah")
 		a.SetFirstName("foo")
 		a.SetEmail("test@test.com")
 		a.SetCustomValueAttribute("baz", "bar")
@@ -84,7 +85,7 @@ func TestAPI(t *testing.T) {
 		var request map[string]interface{}
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
-		a := NewTrackRequest("holah")
+		a := client.NewTrackRequest("holah")
 		pEvent := NewPurchaseEvent()
 		pEvent.SetProductId("blah")
 		pEvent.SetCurrencyUSD()
@@ -116,7 +117,7 @@ func TestAPI(t *testing.T) {
 		var request map[string]interface{}
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
-		a := NewTrackRequest("holah")
+		a := client.NewTrackRequest("holah")
 		event := NewEvent()
 		event.SetName("blah")
 		event.SetTime(time.Unix(0, 0))
@@ -148,7 +149,7 @@ func TestAPI(t *testing.T) {
 		var request map[string]interface{}
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
-		a := NewTrackRequest("holah")
+		a := client.NewTrackRequest("holah")
 		a.SetEmail("test@test.com")
 		a.SetFirstName("foo")
 		a.SetCustomValueAttribute("foo", "bar")
@@ -206,7 +207,7 @@ func TestAPI(t *testing.T) {
 
 		StopMocks()
 
-		a := NewTrackRequest("holah")
+		a := client.NewTrackRequest("holah")
 		a.SetEmail("test@test.com")
 		a.SetFirstName("foo")
 		a.SetCustomValueAttribute("foo", "bar")
@@ -226,7 +227,7 @@ func TestAPI(t *testing.T) {
 
 		StopMocks()
 
-		a := NewTrackRequest("holah")
+		a := client.NewTrackRequest("holah")
 		a.SetEmail("test@test.com")
 		a.SetFirstName("foo")
 		a.SetCustomValueAttribute("foo", "bar")
@@ -236,4 +237,82 @@ func TestAPI(t *testing.T) {
 		So(err, ShouldNotEqual, nil)
 	})
 
+	Convey("Can execute a track request to app-boy with attributes and delete push token request", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var trackRequest map[string]interface{}
+		var deletePushTokenRequest map[string]interface{}
+		MockTrackSuccess(func(_request map[string]interface{}) { trackRequest = _request })
+		MockDeletPushTokenSuccess(func(_request map[string]interface{}) { deletePushTokenRequest = _request })
+
+		a := client.NewTrackRequest("holah")
+		a.SetFirstName("foo")
+		a.SetEmail("test@test.com")
+		a.SetCustomValueAttribute("baz", "bar")
+		a.AddPushToken("apple-token")
+		a.RemovePushToken("apple-token2")
+		err := a.Post()
+
+		err = a.Post()
+		checkErr(err)
+		So(err, ShouldEqual, nil)
+
+		// Check attributes
+		attributes := trackRequest["attributes"].([]interface{})
+		attribute := attributes[0].(map[string]interface{})
+		So(attribute["first_name"], ShouldEqual, "foo")
+		So(attribute["email"], ShouldEqual, "test@test.com")
+		So(attribute["baz"], ShouldEqual, "bar")
+		//So(attribute["push_token_import"], ShouldEqual, true)
+
+		pushTokenAttributes := attribute["push_tokens"].([]interface{})
+		pushTokenAttribute := pushTokenAttributes[0].(map[string]interface{})
+		So(pushTokenAttribute["app_id"], ShouldEqual, "blah")
+		So(pushTokenAttribute["token"], ShouldEqual, "apple-token")
+
+		// Delete push tokens
+		deletePushTokenAttributes := deletePushTokenRequest["push_tokens"].([]interface{})
+		deletePushTokenAttribute := deletePushTokenAttributes[0].(map[string]interface{})
+		So(deletePushTokenAttribute["app_id"], ShouldEqual, "blah")
+		So(deletePushTokenAttribute["token"], ShouldEqual, "apple-token2")
+
+	})
+
+	Convey("Can execute a campaign trigger", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockCampaignTriggerSuccess(func(_request map[string]interface{}) { request = _request })
+
+		a := client.NewCampaignTriggerRequest("my-campaign-id")
+		a.addRecipient("4900", map[string]interface{}{
+			"like_count": 31,
+		})
+		a.addRecipient("3333", map[string]interface{}{
+			"like_count": 33,
+		})
+		err := a.Post()
+
+		checkErr(err)
+		So(err, ShouldEqual, nil)
+
+		// Check attributes
+		appGroupId := request["app_group_id"].(string)
+		campaignId := request["campaign_id"].(string)
+		recs := request["recipients"].([]interface{})
+		rec := recs[0].(map[string]interface{})
+
+		triggerProperties := rec["trigger_properties"].(map[string]interface{})
+		likeCount := int(triggerProperties["like_count"].(float64))
+
+		So(appGroupId, ShouldEqual, "foo")
+		So(campaignId, ShouldEqual, "my-campaign-id")
+		So(len(recs), ShouldEqual, 2)
+		So(rec["external_user_id"], ShouldEqual, "4900")
+		So(likeCount, ShouldEqual, 31)
+	})
 }

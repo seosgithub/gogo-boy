@@ -1,6 +1,8 @@
 package gogo_boy
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -243,6 +245,138 @@ func TestRawAPI(t *testing.T) {
 		So(event["external_id"], ShouldEqual, "foo")
 		So(event["name"], ShouldEqual, "bak")
 		So(event["time"], ShouldEqual, "Z070000")
+	})
+
+	Convey("Can execute a campaign trigger request", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockCampaignTriggerSuccess(func(_request map[string]interface{}) {
+			request = _request
+		})
+
+		// Construct a push token delete request
+		dr := &RawCampaignTriggerRequest{
+			AppGroupId: "xxx",
+			CampaignId: "yyy",
+			Recipients: []RawCampaignRecipient{
+				RawCampaignRecipient{
+					ExternalId: "4900",
+					TriggerProperties: map[string]interface{}{
+						"like_count": 31,
+					},
+				},
+			},
+		}
+
+		err := RawPostCampaignTriggerRequest(dr)
+		checkErr(err)
+		So(err, ShouldEqual, nil)
+
+		// Root
+		So(request["app_group_id"], ShouldEqual, "xxx")
+		So(request["campaign_id"], ShouldEqual, "yyy")
+
+		// Get first recipient
+		recs := request["recipients"].([]interface{})
+		rec := recs[0].(map[string]interface{})
+		So(rec["external_user_id"], ShouldEqual, "4900")
+		triggerProperties := rec["trigger_properties"].(map[string]interface{})
+		So(triggerProperties["like_count"], ShouldEqual, 31)
+	})
+
+	Convey("Gracefully handles error from campaign trigger", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockCampaignTriggerFailure(func(_request map[string]interface{}) {
+			request = _request
+		})
+
+		dr := &RawCampaignTriggerRequest{
+			AppGroupId: "xxx",
+			CampaignId: "yyy",
+			Recipients: []RawCampaignRecipient{
+				RawCampaignRecipient{
+					ExternalId: "4900",
+					TriggerProperties: map[string]interface{}{
+						"like_count": 31,
+					},
+				},
+			},
+		}
+
+		err := RawPostCampaignTriggerRequest(dr)
+		So(err, ShouldNotEqual, nil)
+		errStr := fmt.Sprintf("%s", err)
+		So(strings.Contains(errStr, "An error message"), ShouldEqual, true)
+		So(strings.Contains(errStr, "400"), ShouldEqual, true)
+	})
+
+	Convey("Can execute a delete push notification token request", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockDeletPushTokenSuccess(func(_request map[string]interface{}) {
+			request = _request
+		})
+
+		// Construct a push token delete request
+		dr := &RawPushTokenDeleteRequest{
+			AppGroupId: "foo",
+			PushTokens: []RawPushTokenInfo{
+				RawPushTokenInfo{
+					AppId: "blah",
+					Token: "apple-token",
+				},
+			},
+		}
+
+		err := RawPostDeletePushTokenRequest(dr)
+		checkErr(err)
+		So(err, ShouldEqual, nil)
+
+		// Root
+		So(request["app_group_id"], ShouldEqual, "foo")
+
+		pushTokenAttributes := request["push_tokens"].([]interface{})
+		pushTokenAttribute := pushTokenAttributes[0].(map[string]interface{})
+		So(pushTokenAttribute["app_id"], ShouldEqual, "blah")
+		So(pushTokenAttribute["token"], ShouldEqual, "apple-token")
+	})
+
+	Convey("Gracefully handles error from push token deletion", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockDeletPushTokenFailure(func(_request map[string]interface{}) {
+			request = _request
+		})
+
+		// Construct a push token delete request
+		dr := &RawPushTokenDeleteRequest{
+			AppGroupId: "foo",
+			PushTokens: []RawPushTokenInfo{
+				RawPushTokenInfo{
+					AppId: "blah",
+					Token: "apple-token",
+				},
+			},
+		}
+
+		err := RawPostDeletePushTokenRequest(dr)
+		So(err, ShouldNotEqual, nil)
+		errStr := fmt.Sprintf("%s", err)
+		So(strings.Contains(errStr, "An error message"), ShouldEqual, true)
+		So(strings.Contains(errStr, "400"), ShouldEqual, true)
 	})
 
 }

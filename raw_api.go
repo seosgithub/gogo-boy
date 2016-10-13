@@ -16,7 +16,10 @@ import (
 */
 
 const (
-	TrackEndpoint   = "https://api.appboy.com/users/track"
+	TrackEndpoint           = "https://api.appboy.com/users/track"
+	DeletePushTokenEndpoint = "https://api.appboy.com/push_notification/remove"
+	CampaignTriggerEndpoint = "https://api.appboy.com/campaigns/trigger/send"
+
 	timeoutDuration = time.Second * time.Duration(5)
 )
 
@@ -27,6 +30,26 @@ type RawTrackRequest struct {
 	Attributes []RawAttributesInfo `json:"attributes,omitempty"` // Attributes are per-user information
 	Purchases  []RawPurchaseInfo   `json:"purchases,omitempty"`  // Purchases are special events, each bound to a user
 	Events     []RawEventInfo      `json:"events,omitempty"`     // Events
+}
+
+// App boy seperates deletion of push tokens into a seperate endpoint that's different
+// than track request.  Why?  no idea.
+type RawPushTokenDeleteRequest struct {
+	AppGroupId string             `json:"app_group_id"`
+	PushTokens []RawPushTokenInfo `json:"push_tokens"`
+}
+
+// Trigger a campaign
+type RawCampaignTriggerRequest struct {
+	Recipients []RawCampaignRecipient `json:"recipients"`
+	CampaignId string                 `json:"campaign_id"`
+	AppGroupId string                 `json:"app_group_id"`
+}
+
+// A campaign trigger has many user recipients
+type RawCampaignRecipient struct {
+	ExternalId        string                 `json:"external_user_id"`
+	TriggerProperties map[string]interface{} `json:"trigger_properties"`
 }
 
 type RawAttributesInfo struct {
@@ -137,6 +160,101 @@ func RawPostTrackRequest(trackRequest *RawTrackRequest) error {
 	// App-Boy returns a 201 if this is successful
 	if resp.StatusCode != 201 {
 		return fmt.Errorf("PostTrackRequest failed: Expected status code from app boy to be a 201 but we received a: %d with the payload: '%s'\n", resp.StatusCode, body)
+	}
+
+	return nil
+}
+
+// Post push token request endpoint
+func RawPostDeletePushTokenRequest(rawReq *RawPushTokenDeleteRequest) error {
+	jsonStr, err := json.Marshal(rawReq)
+	if err != nil {
+		return fmt.Errorf("RawPostDeletPushTokenRequest failed: %s", err)
+	}
+
+	// Create post request and make sure you set the content type
+	req, err := http.NewRequest("POST", DeletePushTokenEndpoint, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		return fmt.Errorf("RawPostDeletPushTokenRequest failed: %s", err)
+	}
+	if err != nil {
+		return fmt.Errorf("RawPostDeletPushTokenRequest failed: %s", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	// Our HTTP client
+	client := &http.Client{
+		Timeout: timeoutDuration,
+	}
+
+	// Execute request
+	var resp *http.Response
+	resp, err = client.Do(req)
+	if err != nil {
+		return fmt.Errorf("RawPostDeletPushTokenRequest failed: %s", err)
+	}
+
+	// Read body
+	var body []byte
+	body, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return fmt.Errorf("RawPostDeletPushTokenRequest failed: %s", err)
+	}
+
+	//fmt.Printf("%v", string(json))
+	//fmt.Printf("%v", string(body))
+
+	// App-Boy returns a 201 if this is successful
+	if resp.StatusCode != 201 {
+		return fmt.Errorf("RawPostDeletPushTokenRequest failed: Expected status code from app boy to be a 201 but we received a: %d with the payload: '%s'\n", resp.StatusCode, body)
+	}
+
+	return nil
+}
+
+func RawPostCampaignTriggerRequest(rawReq *RawCampaignTriggerRequest) error {
+	jsonStr, err := json.Marshal(rawReq)
+	if err != nil {
+		return fmt.Errorf("RawCampaignTriggerRequest failed: %s", err)
+	}
+
+	// Create post request and make sure you set the content type
+	req, err := http.NewRequest("POST", CampaignTriggerEndpoint, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		return fmt.Errorf("RawCampaignTriggerRequest failed: %s", err)
+	}
+	if err != nil {
+		return fmt.Errorf("RawCampaignTriggerRequest failed: %s", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	// Our HTTP client
+	client := &http.Client{
+		Timeout: timeoutDuration,
+	}
+
+	// Execute request
+	var resp *http.Response
+	resp, err = client.Do(req)
+	if err != nil {
+		return fmt.Errorf("RawCampaignTriggerRequest failed: %s", err)
+	}
+
+	// Read body
+	var body []byte
+	body, err = ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return fmt.Errorf("RawCampaignTriggerRequest failed: %s", err)
+	}
+
+	//fmt.Printf("%v", string(json))
+	//fmt.Printf("%v", string(body))
+
+	// App-Boy returns a 201 if this is successful
+	if resp.StatusCode != 201 {
+		return fmt.Errorf("RawCampaignTriggerRequest failed: Expected status code from app boy to be a 201 but we received a: %d with the payload: '%s'\n", resp.StatusCode, body)
 	}
 
 	return nil

@@ -16,12 +16,18 @@ type ConfigureInfo struct {
 	AppGroupId string
 }
 
-var appId string
-var appGroupId string
+type Client struct {
+	appId      string
+	appGroupId string
+}
 
-func Configure(_appGroupId string, _appId string) {
-	appGroupId = _appGroupId
-	appId = _appId
+func NewClient(appGroupId string, appId string) *Client {
+	client := &Client{
+		appId:      appId,
+		appGroupId: appGroupId,
+	}
+
+	return client
 }
 
 type TrackRequest struct {
@@ -32,20 +38,36 @@ type TrackRequest struct {
 	// Unlike the RawTrackRequest, we're only
 	// considering one user which will only ever
 	// use one attribute
-	Attributes          map[string]interface{}
-	PushTokenAttributes []string
+	Attributes                map[string]interface{}
+	PushTokenAttributes       []string
+	DeletePushTokenAttributes []string // Tokens that you want deleted
 
 	PurchaseEvents []*PurchaseEvent
 	Events         []*Event
 }
 
-func NewTrackRequest(externalId string) *TrackRequest {
+type CampaignTriggerRequest struct {
+	AppGroupId string
+	CampaignId string
+
+	Recipients []RawCampaignRecipient
+}
+
+func (c *Client) NewTrackRequest(externalId string) *TrackRequest {
 	return &TrackRequest{
-		AppGroupId:          appGroupId,
-		AppId:               appId,
+		AppGroupId:          c.appGroupId,
+		AppId:               c.appId,
 		Attributes:          map[string]interface{}{},
 		PushTokenAttributes: []string{},
 		ExternalId:          externalId,
+	}
+}
+
+func (c *Client) NewCampaignTriggerRequest(campaignId string) *CampaignTriggerRequest {
+	return &CampaignTriggerRequest{
+		AppGroupId: c.appGroupId,
+		CampaignId: campaignId,
+		Recipients: []RawCampaignRecipient{},
 	}
 }
 
@@ -78,6 +100,11 @@ func (tr *TrackRequest) _addEvent(event *Event) {
 
 func (tr *TrackRequest) AddPushToken(token string) {
 	tr.PushTokenAttributes = append(tr.PushTokenAttributes, token)
+}
+
+// This will tell app-boy to remove the push token included
+func (tr *TrackRequest) RemovePushToken(token string) {
+	tr.DeletePushTokenAttributes = append(tr.DeletePushTokenAttributes, token)
 }
 
 func (tr *TrackRequest) SetCustomValueAttribute(name string, value interface{}) {
@@ -129,7 +156,31 @@ func (tr *TrackRequest) Post() error {
 		rt.Events = append(rt.Events, rpi)
 	}
 
-	return RawPostTrackRequest(rt)
+	// Run the regular track requests first
+	err := RawPostTrackRequest(rt)
+	if err != nil {
+		return err
+	}
+
+	// Now run the push token deletions if there are any
+	if len(tr.DeletePushTokenAttributes) > 0 {
+		dr := &RawPushTokenDeleteRequest{
+			PushTokens: []RawPushTokenInfo{},
+		}
+
+		for _, pt := range tr.DeletePushTokenAttributes {
+			dr.PushTokens = append(dr.PushTokens, RawPushTokenInfo{
+				Token: pt,
+				AppId: tr.AppId,
+			})
+		}
+		err = RawPostDeletePushTokenRequest(dr)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 type PurchaseEvent struct {
@@ -174,4 +225,24 @@ func (e *Event) SetName(val string) {
 
 func (e *Event) SetTime(time time.Time) {
 	e.Time = time.UTC().Format("2006-01-02T15:04:05")
+}
+
+func (ctr *CampaignTriggerRequest) addRecipient(externalId string, triggerProperties map[string]interface{}) {
+	rec := RawCampaignRecipient{
+		ExternalId:        externalId,
+		TriggerProperties: triggerProperties,
+	}
+
+	ctr.Recipients = append(ctr.Recipients, rec)
+}
+
+func (ctr *CampaignTriggerRequest) Post() error {
+	rt := &RawCampaignTriggerRequest{
+		AppGroupId: ctr.AppGroupId,
+		CampaignId: ctr.CampaignId,
+		Recipients: ctr.Recipients,
+	}
+
+	err := RawPostCampaignTriggerRequest(rt)
+	return err
 }

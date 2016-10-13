@@ -8,20 +8,23 @@
 This package assists with raw server communication for app-boy's API.  It is concurrency safe but only provides
 a very thin layer on-top of the HTTP interface; you should probably have your own way of ensuring reliability by queing or pooling your connections.
 
-# Missing Features
-
-There (I presume) many missing features of the app-boy API that are not covered here.  This only covers thing that were required for what we were working on at the time.
-
 # Example usage
+
+##### Example A - Tracking, Add Push Tokens, Removing Tokens
 
 ```go
 import "gogo_boy"
 
-// Run this once to configure the app and group id
-gogo_boy.Configure(appGroupId, appId)
+// Client for an app group
+client := gogo_boy.NewClient(appGroupId)
+
+// For applications that have both iOS and android,
+// it's probably a good idea to have two of these
+// for the seperate app ids
+appClient := client.NewAppClient(appId)
 
 // Create a new track request for a user id
-track := gogo_boy.NewTrackRequest(userId)
+track := appClient.NewTrackRequest(userId)
 
 // Set attributes
 track.SetFirstName("foo")
@@ -30,6 +33,9 @@ track.SetCustomValueAttribute("baz", "bar")
 
 // Add push token
 track.AddPushToken("foo")
+
+// Tell app boy to delete a push token
+track.RemovePushToken("foo2")
 
 // Post events
 e := gogo_boy.NewEvent()
@@ -47,7 +53,30 @@ pe.SetTime(time.Unix(0, 0))
 track.AddEvent(pe)
 
 // Post and check for errors
-err := track.Post()
+err := track.Post(track)
+checkErr(err)
+```
+
+##### Example B - Trigger a campaign
+```go
+import "gogo_boy"
+
+// Client for an app group
+client := gogo_boy.NewClient(appGroupId)
+
+// Create a new campaign trigger request
+ctr := client.NewCampaignTriggerRequest("campaign-id)
+
+// Add 2 recipients with trigger properties of like_count
+ctr.addRecipient("<user-id-a>", map[string]interface{}{
+  "like_count": 34,
+})
+ctr.addRecipient("<user-id-b>", map[string]interface{}{
+  "like_count": 22,
+})
+
+// Post and check for errors
+err := ctr.Post(track)
 checkErr(err)
 ```
 

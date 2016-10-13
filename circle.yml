@@ -5,13 +5,13 @@ machine:
     GO15VENDOREXPERIMENT: 1
 
 dependencies:
-  pre:
-    - curl https://glide.sh/get | sh
-
   override:
     - mkdir -p "$GOPATH/src/$IMPORT_PATH"
     - rsync -azC --delete ./ "$GOPATH/src/$IMPORT_PATH/"
 
 test:
   override:
-    - cd $GOPATH/src/$IMPORT_PATH; glide install; make test
+    - cd $GOPATH/src/$IMPORT_PATH; 
+    - go get github.com/jarcoal/httpmock
+    - go get github.com/smartystreets/goconvey/convey
+    - go test
