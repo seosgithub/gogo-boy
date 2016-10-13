@@ -65,7 +65,7 @@ import "gogo_boy"
 client := gogo_boy.NewClient(appGroupId)
 
 // Create a new campaign trigger request
-ctr := client.NewCampaignTriggerRequest("campaign-id)
+ctr := client.NewCampaignTriggerRequest("campaign-id")
 
 // Add 2 recipients with trigger properties of like_count
 ctr.addRecipient("<user-id-a>", map[string]interface{}{
