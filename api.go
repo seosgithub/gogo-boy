@@ -17,13 +17,17 @@ type ConfigureInfo struct {
 }
 
 type Client struct {
-	appId      string
 	appGroupId string
 }
 
-func NewClient(appGroupId string, appId string) *Client {
+type AppClient struct {
+	*Client
+
+	appId string
+}
+
+func NewClient(appGroupId string) *Client {
 	client := &Client{
-		appId:      appId,
 		appGroupId: appGroupId,
 	}
 
@@ -53,7 +57,14 @@ type CampaignTriggerRequest struct {
 	Recipients []RawCampaignRecipient
 }
 
-func (c *Client) NewTrackRequest(externalId string) *TrackRequest {
+func (c *Client) NewAppClient(appId string) *AppClient {
+	return &AppClient{
+		Client: c,
+		appId:  appId,
+	}
+}
+
+func (c *AppClient) NewTrackRequest(externalId string) *TrackRequest {
 	return &TrackRequest{
 		AppGroupId:          c.appGroupId,
 		AppId:               c.appId,

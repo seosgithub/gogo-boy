@@ -11,8 +11,10 @@ import (
 
 func TestAPI(t *testing.T) {
 	var client *Client
+	var appClient *AppClient
 	before := func() {
-		client = NewClient("foo", "blah")
+		client = NewClient("foo")
+		appClient = client.NewAppClient("blah")
 	}
 
 	after := func() {
@@ -28,7 +30,7 @@ func TestAPI(t *testing.T) {
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
 		externalId := "holah"
-		a := client.NewTrackRequest(externalId)
+		a := appClient.NewTrackRequest(externalId)
 		err := a.Post()
 
 		err = a.Post()
@@ -52,7 +54,7 @@ func TestAPI(t *testing.T) {
 		var request map[string]interface{}
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
-		a := client.NewTrackRequest("holah")
+		a := appClient.NewTrackRequest("holah")
 		a.SetFirstName("foo")
 		a.SetEmail("test@test.com")
 		a.SetCustomValueAttribute("baz", "bar")
@@ -85,7 +87,7 @@ func TestAPI(t *testing.T) {
 		var request map[string]interface{}
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
-		a := client.NewTrackRequest("holah")
+		a := appClient.NewTrackRequest("holah")
 		pEvent := NewPurchaseEvent()
 		pEvent.SetProductId("blah")
 		pEvent.SetCurrencyUSD()
@@ -117,7 +119,7 @@ func TestAPI(t *testing.T) {
 		var request map[string]interface{}
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
-		a := client.NewTrackRequest("holah")
+		a := appClient.NewTrackRequest("holah")
 		event := NewEvent()
 		event.SetName("blah")
 		event.SetTime(time.Unix(0, 0))
@@ -149,7 +151,7 @@ func TestAPI(t *testing.T) {
 		var request map[string]interface{}
 		MockTrackSuccess(func(_request map[string]interface{}) { request = _request })
 
-		a := client.NewTrackRequest("holah")
+		a := appClient.NewTrackRequest("holah")
 		a.SetEmail("test@test.com")
 		a.SetFirstName("foo")
 		a.SetCustomValueAttribute("foo", "bar")
@@ -207,7 +209,7 @@ func TestAPI(t *testing.T) {
 
 		StopMocks()
 
-		a := client.NewTrackRequest("holah")
+		a := appClient.NewTrackRequest("holah")
 		a.SetEmail("test@test.com")
 		a.SetFirstName("foo")
 		a.SetCustomValueAttribute("foo", "bar")
@@ -227,7 +229,7 @@ func TestAPI(t *testing.T) {
 
 		StopMocks()
 
-		a := client.NewTrackRequest("holah")
+		a := appClient.NewTrackRequest("holah")
 		a.SetEmail("test@test.com")
 		a.SetFirstName("foo")
 		a.SetCustomValueAttribute("foo", "bar")
@@ -247,7 +249,7 @@ func TestAPI(t *testing.T) {
 		MockTrackSuccess(func(_request map[string]interface{}) { trackRequest = _request })
 		MockDeletPushTokenSuccess(func(_request map[string]interface{}) { deletePushTokenRequest = _request })
 
-		a := client.NewTrackRequest("holah")
+		a := appClient.NewTrackRequest("holah")
 		a.SetFirstName("foo")
 		a.SetEmail("test@test.com")
 		a.SetCustomValueAttribute("baz", "bar")
