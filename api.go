@@ -254,6 +254,10 @@ func (ctr *CampaignTriggerRequest) Post() error {
 		Recipients: ctr.Recipients,
 	}
 
+	if lr := len(rt.Recipients); lr > 50 {
+		return fmt.Errorf("Tried to post a CampaignTriggerRequest for the [AppBoyCampaign](campaign_id: %s) but there were %d recipients which exceeds the maximum of 50 per request.  You will need to break your campaign trigger requests up into multiple requests in order to send more than 50 recipients", rt.CampaignId, lr)
+	}
+
 	err := RawPostCampaignTriggerRequest(rt)
 	return err
 }

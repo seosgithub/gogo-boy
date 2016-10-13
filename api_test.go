@@ -2,7 +2,9 @@ package gogo_boy
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -291,6 +293,68 @@ func TestAPI(t *testing.T) {
 		MockCampaignTriggerSuccess(func(_request map[string]interface{}) { request = _request })
 
 		a := client.NewCampaignTriggerRequest("my-campaign-id")
+
+		// Batch 50 because it's an API upper limit before it needs to be split
+		// into multiple requests
+		for i := 0; i < 50; i++ {
+			a.addRecipient("4900", map[string]interface{}{
+				"like_count": 31,
+			})
+		}
+		err := a.Post()
+
+		checkErr(err)
+		So(err, ShouldEqual, nil)
+
+		// Check attributes
+		appGroupId := request["app_group_id"].(string)
+		campaignId := request["campaign_id"].(string)
+		recs := request["recipients"].([]interface{})
+		rec := recs[0].(map[string]interface{})
+
+		triggerProperties := rec["trigger_properties"].(map[string]interface{})
+		likeCount := int(triggerProperties["like_count"].(float64))
+
+		So(appGroupId, ShouldEqual, "foo")
+		So(campaignId, ShouldEqual, "my-campaign-id")
+		So(len(recs), ShouldEqual, 50)
+		So(rec["external_user_id"], ShouldEqual, "4900")
+		So(likeCount, ShouldEqual, 31)
+	})
+
+	Convey("Does error if you go over 50 recipients", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockCampaignTriggerSuccess(func(_request map[string]interface{}) { request = _request })
+
+		a := client.NewCampaignTriggerRequest("my-campaign-id")
+
+		// Batch 51 because it's over the api limit of 50
+		for i := 0; i < 51; i++ {
+			a.addRecipient("4900", map[string]interface{}{
+				"like_count": 31,
+			})
+		}
+		// This will fail because we have over 50 recipients
+		err := a.Post()
+		So(err, ShouldNotEqual, nil)
+		So(strings.Contains(fmt.Sprintf("%s", err), "50"), ShouldEqual, true)
+		So(strings.Contains(fmt.Sprintf("%s", err), "51"), ShouldEqual, true)
+		So(strings.Contains(fmt.Sprintf("%s", err), "my-campaign-id"), ShouldEqual, true)
+	})
+
+	Convey("Does batch campaign trigger into two requests for 51 entries", t, func() {
+		before()
+		defer after()
+
+		// Mock request to app-boy
+		var request map[string]interface{}
+		MockCampaignTriggerSuccess(func(_request map[string]interface{}) { request = _request })
+
+		a := client.NewCampaignTriggerRequest("my-campaign-id")
 		a.addRecipient("4900", map[string]interface{}{
 			"like_count": 31,
 		})
@@ -317,4 +381,5 @@ func TestAPI(t *testing.T) {
 		So(rec["external_user_id"], ShouldEqual, "4900")
 		So(likeCount, ShouldEqual, 31)
 	})
+
 }
