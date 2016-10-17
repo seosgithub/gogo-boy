@@ -238,7 +238,7 @@ func (e *Event) SetTime(time time.Time) {
 	e.Time = time.UTC().Format("2006-01-02T15:04:05")
 }
 
-func (ctr *CampaignTriggerRequest) addRecipient(externalId string, triggerProperties map[string]interface{}) {
+func (ctr *CampaignTriggerRequest) AddRecipient(externalId string, triggerProperties map[string]interface{}) {
 	rec := RawCampaignRecipient{
 		ExternalId:        externalId,
 		TriggerProperties: triggerProperties,

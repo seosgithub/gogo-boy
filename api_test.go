@@ -297,7 +297,7 @@ func TestAPI(t *testing.T) {
 		// Batch 50 because it's an API upper limit before it needs to be split
 		// into multiple requests
 		for i := 0; i < 50; i++ {
-			a.addRecipient("4900", map[string]interface{}{
+			a.AddRecipient("4900", map[string]interface{}{
 				"like_count": 31,
 			})
 		}
@@ -334,7 +334,7 @@ func TestAPI(t *testing.T) {
 
 		// Batch 51 because it's over the api limit of 50
 		for i := 0; i < 51; i++ {
-			a.addRecipient("4900", map[string]interface{}{
+			a.AddRecipient("4900", map[string]interface{}{
 				"like_count": 31,
 			})
 		}
@@ -355,10 +355,10 @@ func TestAPI(t *testing.T) {
 		MockCampaignTriggerSuccess(func(_request map[string]interface{}) { request = _request })
 
 		a := client.NewCampaignTriggerRequest("my-campaign-id")
-		a.addRecipient("4900", map[string]interface{}{
+		a.AddRecipient("4900", map[string]interface{}{
 			"like_count": 31,
 		})
-		a.addRecipient("3333", map[string]interface{}{
+		a.AddRecipient("3333", map[string]interface{}{
 			"like_count": 33,
 		})
 		err := a.Post()
